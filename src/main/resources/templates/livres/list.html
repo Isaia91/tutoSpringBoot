@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Liste des Livres</title>
+</head>
+<body>
+<h1>Liste des Livres</h1>
+<ul>
+    <li th:each="livre : ${livres}">
+        <span th:text="${livre.titre}"></span>
+        [<a th:href="@{'/livres/' + ${livre.id}}">Détail</a>]
+        [<a th:href="@{'/livres/supprimer/' + ${livre.id}}">Supprimer</a>]
+    </li>
+</ul>
+<a th:href="@{/livres/ajouter}">Ajouter un livre (test)</a>
+</body>
+</html>

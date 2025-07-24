@@ -1,6 +1,8 @@
 package nc.unc.iut.miaw.firstAppSpring.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import nc.unc.iut.miaw.firstAppSpring.model.AuteurModel;
 import nc.unc.iut.miaw.firstAppSpring.repository.AuteurRepository;
@@ -8,52 +10,41 @@ import nc.unc.iut.miaw.firstAppSpring.repository.AuteurRepository;
 import java.util.List;
 import java.util.Objects;
 
-@RestController
+@Controller
 @RequestMapping("/auteurs")
 public class AuteurController {
 
     @Autowired
     private AuteurRepository auteurRepository;
 
-    @GetMapping
-    public List<AuteurModel> getAll() {
-        return auteurRepository.findAll();
+    // Page liste
+    @GetMapping("/list")
+    public String getAllList(Model model) {
+        List<AuteurModel> auteurs = auteurRepository.findAll();
+        model.addAttribute("auteurs", auteurs);
+        return "auteurs/list";
     }
 
-    @GetMapping("/list")
-    public String getAllList() {
-        List<AuteurModel> auteurs = auteurRepository.findAll();
-        if (auteurs.isEmpty()) {
-            return "Aucun auteur enregistré.";
-        }
+    // Page détail
+    @GetMapping("/{id}")
+    public String getAuteurById(@PathVariable Long id, Model model) {
+        AuteurModel auteur = auteurRepository.findById(id).orElse(null);
+        model.addAttribute("auteur", auteur);
+        return "auteurs/detail";
+    }
 
-        StringBuilder sb = new StringBuilder("Liste des auteurs :\n\n");
-        for (AuteurModel auteur : auteurs) {
-            sb.append("- ")
-                    .append(auteur.getPrenom()).append(" ").append(auteur.getNom())
-                    .append(" (id: ").append(auteur.getId()).append(")\n");
-        }
-        return sb.toString();
+    // Supprimer (redirection vers liste)
+    @GetMapping("/supprimer/{id}")
+    public String supprimer(@PathVariable Long id) {
+        auteurRepository.deleteById(id);
+        return "redirect:/auteurs/list";
     }
 
     @GetMapping("/ajouter")
     public String ajouterGet() {
-        AuteurModel auteur = new AuteurModel("To", "Delete");
+        AuteurModel auteur = new AuteurModel("Bruce", "Raillard");
         auteurRepository.save(auteur);
-        return "Auteur ajouté : " + auteur.getPrenom() + " " + auteur.getNom();
-    }
-
-    @GetMapping("/supprimer/{id}")
-    public String supprimer(@PathVariable Long id) {
-        if (auteurRepository.existsById(id)) {
-            auteurRepository.findById(id).orElse(null);
-            String prenom = Objects.requireNonNull(auteurRepository.findById(id).orElse(null)).getPrenom();
-            String nom = Objects.requireNonNull(auteurRepository.findById(id).orElse(null)).getNom();
-            auteurRepository.deleteById(id);
-            return "Auteur "+ prenom + " "+ nom + " supprimé.";
-        } else {
-            return "Aucun auteur trouvé avec l'id " + id;
-        }
+        return "redirect:/auteurs/list";
     }
 
     @GetMapping("/modifier/{id}/{nom}/{prenom}")
@@ -65,17 +56,7 @@ public class AuteurController {
             auteur.setNom(nom);
             auteur.setPrenom(prenom);
             auteurRepository.save(auteur);
-            return "Auteur modifié "+"(id: " + id + ") "+" : " + prenom + " " + nom ;
-        } else {
-            return "Aucun auteur trouvé avec l'id " + id;
-        }
-    }
-
-    @GetMapping("/{id}")
-    public String getAuteurById(@PathVariable Long id) {
-        AuteurModel auteur = auteurRepository.findById(id).orElse(null);
-        if (auteur != null) {
-            return auteur.getPrenom() + " " + auteur.getNom() + " (id: " + id + ")";
+            return "redirect:/auteurs/list";
         } else {
             return "Aucun auteur trouvé avec l'id " + id;
         }
